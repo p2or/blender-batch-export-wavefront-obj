@@ -19,7 +19,7 @@
 
 bl_info = {
     "name": "Export multiple OBJ files",
-    "author": "poor",
+    "author": "p2or",
     "version": (0, 1, 0),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
