@@ -20,7 +20,7 @@
 bl_info = {
     "name": "OBJ Batch Export",
     "author": "p2or, brockmann, trippeljojo",
-    "version": (0, 4, 0),
+    "version": (0, 5, 0),
     "blender": (3, 6, 0),
     "location": "File > Import-Export",
     "description": "Export multiple OBJ files, their UVs and Materials",
