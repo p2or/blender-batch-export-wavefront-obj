@@ -1,6 +1,6 @@
 # Batch export [Wavefront .obj files](https://en.wikipedia.org/wiki/Wavefront_.obj_file)
 
-A tiny add-on for Blender that allows to export multiple OBJ files at once and comes with the usual settings.
+A tiny add-on for Blender that allows to export multiple scene objects at once and comes with the usual settings.
 
 <img width="522" alt="j1tkH" src="https://github.com/p2or/blender-batch-export-wavefront-obj/assets/512368/80ef69a0-e759-4fe8-b13c-18470983efd0">
 
