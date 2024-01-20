@@ -8,6 +8,15 @@ A tiny add-on for Blender that allows to export multiple OBJ files at once and c
 
 This repository has emerged from [Export multiple objects to .obj](https://blender.stackexchange.com/q/5382/3710) to keep track of all the changes over the years and having all downloads in one place. The add-on itself is basically just a wrapper of [`wm.obj_export`](https://docs.blender.org/api/current/bpy.ops.wm.html?highlight=obj_import#bpy.ops.wm.obj_export) or [`export_scene.obj`](https://docs.blender.org/api/blender_python_api_2_74_5/bpy.ops.export_scene.html?highlight=import_scene.obj#bpy.ops.export_scene.obj) operator in versions prior to Blender `3.3.0` until exporting multiple .obj files is officially supported.
 
+## Versions
+
+| Blender/Branch | Latest Version | Release | 
+| :------ | :--- | :------ |
+| [Blender 2.74+](../../tree/Blender-2.74+)    | 0.1.0 | [Download](../../releases/download/0.1.0/io_batch_export_objs.py) |
+| [Blender 2.80+](../../tree/Blender-2.80+)    | 0.2.0 | [Download](../../releases/download/0.2.0/io_batch_export_objs.py) |
+| [Blender 3.1+](../../tree/Blender-3.1+)      | 0.3.0 | [Download](../../releases/download/0.3.0/io_batch_export_objs.py) |
+| [Blender 3.3+](../../tree/Blender-3.3+)      | 0.4.0 | [Download](../../releases/download/0.4.0/io_batch_export_objs.py) |
+| [Blender 3.6+](../../tree/Blender-3.6+)      | 0.5.0 | [Download](../../releases/download/0.5.0/io_batch_export_objs.py) |
 
 ----
 
