@@ -19,7 +19,7 @@
 
 bl_info = {
     "name": "Export multiple OBJ files",
-    "author": "p2or, brockmann",
+    "author": "p2or, brockmann, trippeljojo",
     "version": (0, 2, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
@@ -175,6 +175,17 @@ class ExportMultipleObjs(bpy.types.Operator, ExportHelper):
             min=0.01, max=1000.0,
             default=1.0,
             )
+    path_mode_setting: EnumProperty(
+            name="Path Mode",
+            items=(('AUTO', "Auto", ""),
+                   ('ABSOLUTE', "Absolute", ""),
+                   ('RELATIVE', "Relative", ""),
+                   ('MATCH', "Match", ""),
+                   ('STRIP', "Strip", ""),
+                   ('COPY', "Copy", ""),
+                   ),
+            default='AUTO',
+        )
 
     def execute(self, context):                
 
@@ -217,7 +228,8 @@ class ExportMultipleObjs(bpy.types.Operator, ExportHelper):
                         group_by_object=self.group_by_object_setting, 
                         group_by_material=self.group_by_material_setting, 
                         keep_vertex_order=self.keep_vertex_order_setting, 
-                        global_scale=self.global_scale_setting
+                        global_scale=self.global_scale_setting,
+                        path_mode=self.path_mode_setting
                 )
             item.select_set(False)
 
