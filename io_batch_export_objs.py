@@ -18,12 +18,12 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Export multiple OBJ files",
+    "name": "OBJ Batch Export",
     "author": "p2or, brockmann, trippeljojo",
-    "version": (0, 2, 0),
-    "blender": (2, 80, 0),
+    "version": (0, 3),
+    "blender": (3, 1, 0),
     "location": "File > Import-Export",
-    "description": "Export multiple OBJ files, UV's, materials",
+    "description": "Export multiple OBJ files, their UVs and Materials",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
@@ -32,10 +32,10 @@ bl_info = {
 
 import bpy
 import os
-
 from bpy_extras.io_utils import ExportHelper
 
 from bpy.props import (BoolProperty,
+                       IntProperty,
                        FloatProperty,
                        StringProperty,
                        EnumProperty,
@@ -43,8 +43,8 @@ from bpy.props import (BoolProperty,
                        )
 
 
-class ExportMultipleObjs(bpy.types.Operator, ExportHelper):
-    """Batch export objects as obj files"""
+class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
+    """Batch export the scene to separate obj files"""
     bl_idname = "export_scene.batch_obj"
     bl_label = "Batch export OBJ's"
     bl_options = {'PRESET', 'UNDO'}
@@ -54,204 +54,155 @@ class ExportMultipleObjs(bpy.types.Operator, ExportHelper):
 
     filter_glob = StringProperty(
             default="*.obj;*.mtl",
-            options={'HIDDEN'},
-            )
+            options={'HIDDEN'},)
+    
+    # Object Properties
+    axis_forward: EnumProperty(
+            name="Axis Forward",
+            items=(('X_FORWARD', "X", "Positive X Axis"),
+                   ('Y_FORWARD', "Y", "Positive Y Axis"),
+                   ('Z_FORWARD', "Z", "Positive Z Axis"),
+                   ('NEGATIVE_X_FORWARD', "-X", "Negative X Axis"),
+                   ('NEGATIVE_Y_FORWARD', "-Y", "Negative Y Axis"),
+                   ('NEGATIVE_Z_FORWARD', "-Z (Default)", "Negative Z Axis"),),
+            default='NEGATIVE_Z_FORWARD')
+            
+    axis_up: EnumProperty(
+            name="Axis Up",
+            items=(('X_UP', "X Up", "Positive X Axis"),
+                   ('Y_UP', "Y Up (Default)", "Positive Y Axis"),
+                   ('Z_UP', "Z Up", "Positive Z Axis"),
+                   ('NEGATIVE_X_UP', "-X Up", "Negative X Axis"),
+                   ('NEGATIVE_Y_UP', "-Y Up", "Negative Y Axis"),
+                   ('NEGATIVE_Z_UP', "-Z Up", "Negative Z Axis"),),
+            default='Y_UP')
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator setting before calling.
-
-    # context group
-    use_selection_setting: BoolProperty(
+    scale_factor: FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=1.0,)
+    
+    selection_only: BoolProperty(
             name="Selection Only",
             description="Export selected objects only",
-            default=True,
-            )
-    use_animation_setting: BoolProperty(
-            name="Animation",
-            description="Write out an OBJ for each frame",
-            default=False,
-            )
-
-    # object group
-    use_mesh_modifiers_setting: BoolProperty(
-            name="Apply Modifiers",
-            description="Apply modifiers (preview resolution)",
-            default=True,
-            )
-
-    # extra data group
-    use_edges_setting: BoolProperty(
-            name="Include Edges",
-            description="",
-            default=True,
-            )
-    use_smooth_groups_setting: BoolProperty(
-            name="Smooth Groups",
-            description="Write sharp edges as smooth groups",
-            default=False,
-            )
-    use_smooth_groups_bitflags_setting: BoolProperty(
-            name="Bitflag Smooth Groups",
-            description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
-                        "(produces at most 32 different smooth groups, usually much less)",
-            default=False,
-            )
-    use_normals_setting: BoolProperty(
-            name="Write Normals",
-            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-            default=False,
-            )
-    use_uvs_setting: BoolProperty(
+            default=True,)
+            
+    eval_mode: EnumProperty(
+            name="Evaluation Mode",
+            items=(('DAG_EVAL_VIEWPORT', "Viewport (Default)", "Objects as they appear in the Viewport"),
+                   ('DAG_EVAL_RENDER', "Render", "Objects as they appear in Render"),),
+            default='DAG_EVAL_VIEWPORT')
+    
+    # Geometry Export
+    write_uvs: BoolProperty(
             name="Include UVs",
             description="Write out the active UV coordinates",
-            default=True,
-            )
-    use_materials_setting: BoolProperty(
+            default=True)
+            
+    write_normals: BoolProperty(
+            name="Write Normals",
+            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
+            default=True) 
+
+    write_materials: BoolProperty(
             name="Write Materials",
             description="Write out the MTL file",
-            default=True,
-            )
-    use_triangles_setting: BoolProperty(
+            default=True)
+            
+    triangulate_faces: BoolProperty(
             name="Triangulate Faces",
             description="Convert all faces to triangles",
-            default=False,
-            )
-    use_nurbs_setting: BoolProperty(
+            default=False) 
+
+    write_nurbs: BoolProperty(
             name="Write Nurbs",
             description="Write nurbs curves as OBJ nurbs rather than "
                         "converting to geometry",
-            default=False,
-            )
-    use_vertex_groups_setting: BoolProperty(
-            name="Polygroups",
-            description="",
-            default=False,
-            )
-
-    use_blen_objects_setting: BoolProperty(
-            name="Objects as OBJ Objects",
-            description="",
-            default=True,
-            )
-    group_by_object_setting: BoolProperty(
+            default=False)
+    
+    # Grouping
+    group_by_object: BoolProperty(
             name="Objects as OBJ Groups ",
             description="",
-            default=False,
-            )
-    group_by_material_setting: BoolProperty(
+            default=False)
+    
+    group_by_material: BoolProperty(
             name="Material Groups",
             description="",
-            default=False,
-            )
-    keep_vertex_order_setting: BoolProperty(
-            name="Keep Vertex Order",
+            default=False)
+    
+    group_by_vertex: BoolProperty(
+            name="Polygroups",
             description="",
-            default=False,
-            )
-    axis_forward_setting: EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='-Z',
-            )
-    axis_up_setting: EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
-            )
-    global_scale_setting: FloatProperty(
-            name="Scale",
-            min=0.01, max=1000.0,
-            default=1.0,
-            )
-    path_mode_setting: EnumProperty(
-            name="Path Mode",
-            items=(('AUTO', "Auto", ""),
-                   ('ABSOLUTE', "Absolute", ""),
-                   ('RELATIVE', "Relative", ""),
-                   ('MATCH', "Match", ""),
-                   ('STRIP', "Strip", ""),
-                   ('COPY', "Copy", ""),
-                   ),
-            default='AUTO',
-        )
+            default=False)
+            
+    smoothing_groups: BoolProperty(
+            name="Smooth Groups",
+            description="Write sharp edges as smooth groups",
+            default=False)
+
+    smoothing_group_bitflags: BoolProperty(
+            name="Bitflag Smooth Groups", 
+            description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
+                        "(produces at most 32 different smooth groups, usually much less)",
+            default=False)
 
     def execute(self, context):                
-
-        # get the folder
+        # Get the current folder
         folder_path = os.path.dirname(self.filepath)
+        
+        # Get all objects selected in the viewport
+        viewport_selection = candidates = context.selected_objects
+        if self.selection_only == False:
+            candidates = [o for o in context.scene.objects]
 
-        # get objects selected in the viewport
-        viewport_selection = context.selected_objects
-
-        # get export objects
-        obj_export_list = viewport_selection
-        if self.use_selection_setting == False:
-            obj_export_list = [i for i in context.scene.objects]
-
-        # deselect all objects
+        # Deselect all objects
         bpy.ops.object.select_all(action='DESELECT')
+        
+        for obj in [o for o in candidates if o.type == 'MESH']:
+            obj.select_set(True)
+            
+            file_path = os.path.join(folder_path, "{}.obj".format(obj.name))
+            bpy.ops.wm.obj_export(
+                    filepath=file_path,
+                    export_animation=False,
+                    # Object Properties
+                    forward_axis=self.axis_forward,
+                    up_axis=self.axis_up,
+                    scaling_factor=self.scale_factor,
+                    export_selected_objects=True,
+                    export_eval_mode=self.eval_mode,
+                    # Geometry Export
+                    export_uv=self.write_uvs,
+                    export_normals=self.write_normals,
+                    export_materials=self.write_materials,
+                    export_triangulated_mesh=self.triangulate_faces,
+                    export_curves_as_nurbs=self.write_nurbs,
+                    # Grouping
+                    export_object_groups=self.group_by_object,
+                    export_material_groups = self.group_by_material,
+                    export_vertex_groups = self.group_by_vertex,
+                    export_smooth_groups=self.smoothing_groups,
+                    smooth_group_bitflags=self.smoothing_group_bitflags
+            )
+            obj.select_set(False)
 
-        for item in obj_export_list:
-            item.select_set(True)
-            if item.type == 'MESH':
-                file_path = os.path.join(folder_path, "{}.obj".format(item.name))
-                
-                bpy.ops.export_scene.obj(
-                        filepath=file_path,
-                        use_selection=self.use_selection_setting,
-                        axis_forward=self.axis_forward_setting, 
-                        axis_up=self.axis_up_setting,
-                        use_animation=self.use_animation_setting, 
-                        use_mesh_modifiers=self.use_mesh_modifiers_setting,
-                        use_edges=self.use_edges_setting, 
-                        use_smooth_groups=self.use_smooth_groups_setting,
-                        use_smooth_groups_bitflags=self.use_smooth_groups_bitflags_setting, 
-                        use_normals=self.use_normals_setting,
-                        use_uvs=self.use_uvs_setting, 
-                        use_materials=self.use_materials_setting,
-                        use_triangles=self.use_triangles_setting, 
-                        use_nurbs=self.use_nurbs_setting, 
-                        use_vertex_groups=self.use_vertex_groups_setting, 
-                        use_blen_objects=self.use_blen_objects_setting, 
-                        group_by_object=self.group_by_object_setting, 
-                        group_by_material=self.group_by_material_setting, 
-                        keep_vertex_order=self.keep_vertex_order_setting, 
-                        global_scale=self.global_scale_setting,
-                        path_mode=self.path_mode_setting
-                )
-            item.select_set(False)
-
-        # restore viewport selection
-        for ob in viewport_selection:
-            ob.select_set(True)
+        # Restore Viewport Selection
+        for obj in viewport_selection:
+            obj.select_set(True)
             
         return {'FINISHED'}
 
 
-# Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
-    self.layout.operator(ExportMultipleObjs.bl_idname, text="Wavefront Batch (.obj)")
-
+    self.layout.operator(WM_OT_batchExportObjs.bl_idname, text="Wavefront Batch (.obj)")
 
 def register():
-    bpy.utils.register_class(ExportMultipleObjs)
+    bpy.utils.register_class(WM_OT_batchExportObjs)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_import)
 
-
 def unregister():
-    bpy.utils.unregister_class(ExportMultipleObjs)
+    bpy.utils.unregister_class(WM_OT_batchExportObjs)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_import)
 
 
@@ -259,4 +210,4 @@ if __name__ == "__main__":
     register()
 
     # test call
-    #bpy.ops.export_scene.multiple_objs('INVOKE_DEFAULT')
+    #bpy.ops.export_scene.batch_obj('INVOKE_DEFAULT')
