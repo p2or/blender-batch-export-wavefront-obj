@@ -21,7 +21,7 @@ bl_info = {
     "name": "OBJ Batch Export",
     "author": "p2or, brockmann, trippeljojo",
     "version": (0, 3, 0),
-    "blender": (3, 1, 0),
+    "blender": (3, 3, 0),
     "location": "File > Import-Export",
     "description": "Export multiple OBJ files, their UVs and Materials",
     "warning": "",
@@ -56,26 +56,25 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
             default="*.obj;*.mtl",
             options={'HIDDEN'},)
     
-    # Object Properties
     axis_forward: EnumProperty(
             name="Axis Forward",
-            items=(('X_FORWARD', "X", "Positive X Axis"),
-                   ('Y_FORWARD', "Y", "Positive Y Axis"),
-                   ('Z_FORWARD', "Z", "Positive Z Axis"),
-                   ('NEGATIVE_X_FORWARD', "-X", "Negative X Axis"),
-                   ('NEGATIVE_Y_FORWARD', "-Y", "Negative Y Axis"),
-                   ('NEGATIVE_Z_FORWARD', "-Z (Default)", "Negative Z Axis"),),
-            default='NEGATIVE_Z_FORWARD')
+            items=(('X', "X", "Positive X Axis"),
+                   ('Y', "Y", "Positive Y Axis"),
+                   ('Z', "Z", "Positive Z Axis"),
+                   ('NEGATIVE_X', "-X", "Negative X Axis"),
+                   ('NEGATIVE_Y', "-Y", "Negative Y Axis"),
+                   ('NEGATIVE_Z', "-Z (Default)", "Negative Z Axis"),),
+            default='NEGATIVE_Z')
             
     axis_up: EnumProperty(
             name="Axis Up",
-            items=(('X_UP', "X Up", "Positive X Axis"),
-                   ('Y_UP', "Y Up (Default)", "Positive Y Axis"),
-                   ('Z_UP', "Z Up", "Positive Z Axis"),
-                   ('NEGATIVE_X_UP', "-X Up", "Negative X Axis"),
-                   ('NEGATIVE_Y_UP', "-Y Up", "Negative Y Axis"),
-                   ('NEGATIVE_Z_UP', "-Z Up", "Negative Z Axis"),),
-            default='Y_UP')
+            items=(('X', "X Up", "Positive X Axis"),
+                   ('Y', "Y Up (Default)", "Positive Y Axis"),
+                   ('Z', "Z Up", "Positive Z Axis"),
+                   ('NEGATIVE_X', "-X Up", "Negative X Axis"),
+                   ('NEGATIVE_Y', "-Y Up", "Negative Y Axis"),
+                   ('NEGATIVE_Z', "-Z Up", "Negative Z Axis"),),
+            default='Y')
 
     scale_factor: FloatProperty(
             name="Scale",
@@ -93,7 +92,11 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
                    ('DAG_EVAL_RENDER', "Render", "Objects as they appear in Render"),),
             default='DAG_EVAL_VIEWPORT')
     
-    # Geometry Export
+    modifiers_apply: BoolProperty(
+            name="Apply Modifiers",
+            description="Apply Modifiers to exported meshes",
+            default=False)
+            
     write_uvs: BoolProperty(
             name="Include UVs",
             description="Write out the active UV coordinates",
@@ -102,7 +105,7 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
     write_normals: BoolProperty(
             name="Write Normals",
             description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-            default=True) 
+            default=True)
 
     write_materials: BoolProperty(
             name="Write Materials",
@@ -112,7 +115,7 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
     triangulate_faces: BoolProperty(
             name="Triangulate Faces",
             description="Convert all faces to triangles",
-            default=False) 
+            default=False)
 
     write_nurbs: BoolProperty(
             name="Write Nurbs",
@@ -120,7 +123,6 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
                         "converting to geometry",
             default=False)
     
-    # Grouping
     group_by_object: BoolProperty(
             name="Objects as OBJ Groups ",
             description="",
@@ -142,7 +144,7 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
             default=False)
 
     smoothing_group_bitflags: BoolProperty(
-            name="Bitflag Smooth Groups", 
+            name="Bitflag Smooth Groups",
             description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
                         "(produces at most 32 different smooth groups, usually much less)",
             default=False)
@@ -166,19 +168,17 @@ class WM_OT_batchExportObjs(bpy.types.Operator, ExportHelper):
             bpy.ops.wm.obj_export(
                     filepath=file_path,
                     export_animation=False,
-                    # Object Properties
                     forward_axis=self.axis_forward,
                     up_axis=self.axis_up,
                     scaling_factor=self.scale_factor,
+                    apply_modifiers=self.modifiers_apply,
                     export_selected_objects=True,
                     export_eval_mode=self.eval_mode,
-                    # Geometry Export
                     export_uv=self.write_uvs,
                     export_normals=self.write_normals,
                     export_materials=self.write_materials,
                     export_triangulated_mesh=self.triangulate_faces,
                     export_curves_as_nurbs=self.write_nurbs,
-                    # Grouping
                     export_object_groups=self.group_by_object,
                     export_material_groups = self.group_by_material,
                     export_vertex_groups = self.group_by_vertex,
