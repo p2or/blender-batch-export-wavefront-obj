@@ -18,6 +18,13 @@ This repository has emerged from [Export multiple objects to .obj](https://blend
 | [Blender 3.3+](../../tree/Blender-3.3+)      | 0.4.0 | [Download](../../releases/download/0.4.0/io_batch_export_objs.py) |
 | [Blender 3.6+](../../tree/Blender-3.6+)      | 0.5.0 | [Download](../../releases/download/0.5.0/io_batch_export_objs.py) |
 
+
+## Installation
+
+1. Download the correct [release version of the add-on](#Versions) to match your version of Blender
+1. In Blender open up *Preferences > Addons*
+1. Click *Install*, select `io_batch_export_objs.py` and activate the add-on
+
 ----
 
 Might also be of interest: [Batch import Wavefront .obj files](https://github.com/p2or/blender-batch-import-wavefront-obj)
