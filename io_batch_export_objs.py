@@ -244,11 +244,11 @@ def menu_func_import(self, context):
 
 def register():
     bpy.utils.register_class(WM_OT_batchExportObjs)
-    #bpy.types.TOPBAR_MT_file_export.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_import)
 
 def unregister():
     bpy.utils.unregister_class(WM_OT_batchExportObjs)
-    #bpy.types.TOPBAR_MT_file_export.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_import)
 
 
 if __name__ == "__main__":
